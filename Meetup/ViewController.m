@@ -7,21 +7,42 @@
 //
 
 #import "ViewController.h"
+#import "EventClass.h"
+#import "EventDetailViewController.h"
 
-@interface ViewController ()
-
+@interface ViewController ()<UITableViewDataSource, UITableViewDelegate>
+@property (weak, nonatomic) IBOutlet UITableView *tableView;
+@property NSMutableArray *meetups;
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+    self.meetups = [[NSMutableArray alloc] init];
+    [EventClass retrieveMeetupsWithCompletion:^(NSArray *meetups) {
+        self.meetups = [meetups mutableCopy];
+        [self.tableView reloadData];
+    }];
+
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+-(NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger) section{
+        return self.meetups.count;
+}
+
+-(UITableViewCell*)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+        UITableViewCell *cell = [self.tableView dequeueReusableCellWithIdentifier:@"cell"];
+        EventClass *event = [self.meetups objectAtIndex:indexPath.row];
+        cell.textLabel.text = event.name;
+        cell.detailTextLabel.text = event.address;
+        return cell;
+}
+
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    EventDetailViewController *vc = [segue destinationViewController];
+    NSIndexPath *path = [self.tableView indexPathForSelectedRow];
+    vc.selectedEvent = self.meetups[path.row];
 }
 
 @end
